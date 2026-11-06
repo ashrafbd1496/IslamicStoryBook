@@ -12,7 +12,7 @@ interface Story {
     icon: string
     premium: boolean
     description: string
-    content: string
+    content: string[]
 }
 
 defineProps<{
@@ -257,14 +257,18 @@ defineProps<{
                                 📖 গল্পটি পড়ুন
                             </h3>
 
-                            <div
-                                class="whitespace-pre-line
-                                       text-base
-                                       leading-10
-                                       text-emerald-50/90
-                                       sm:text-lg"
+                            <div class="space-y-5
+                                    text-base
+                                    leading-10
+                                    text-emerald-50/90
+                                    sm:text-lg"
                             >
-                                {{ story.content }}
+                                <p
+                                    v-for="(paragraph, index) in story.content"
+                                    :key="index"
+                                >
+                                    {{ paragraph }}
+                                </p>
                             </div>
                         </div>
 
@@ -288,6 +292,17 @@ defineProps<{
                                        hover:bg-amber-300"
                             >
                                 ← গল্পের লাইব্রেরিতে ফিরে যান
+                            </Link>
+
+                            <Link
+                                :href="`/stories/${story.id}/read`"
+                                class="inline-flex items-center gap-2
+                                    rounded-xl bg-amber-400
+                                    px-6 py-3 font-bold
+                                    text-[#102B20]
+                                    transition hover:bg-amber-300"
+                            >
+                                📖 সম্পূর্ণ গল্প পড়ুন →
                             </Link>
                         </div>
                     </div>

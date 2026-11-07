@@ -23,6 +23,8 @@ const searchQuery = ref('')
 // Filters
 const selectedCategory = ref('all')
 const selectedAge = ref('all')
+const selectedSort = ref('default')
+
 
 // Pagination
 const currentPage = ref(1)
@@ -151,6 +153,28 @@ const filteredStories = computed(() => {
     })
 })
 
+
+	// Sort Filtered Stories
+	const sortedStories = computed(() => {
+		const result = [...filteredStories.value]
+
+		if (selectedSort.value === 'az') {
+			return result.sort((a, b) =>
+				a.title.localeCompare(b.title, 'bn')
+			)
+		}
+
+		if (selectedSort.value === 'za') {
+			return result.sort((a, b) =>
+				b.title.localeCompare(a.title, 'bn')
+			)
+		}
+
+		return result
+	})
+
+
+
 // Pagination Calculation
 const totalPages = computed(() => {
     return Math.ceil(filteredStories.value.length / perPage)
@@ -159,15 +183,16 @@ const totalPages = computed(() => {
 const paginatedStories = computed(() => {
     const start = (currentPage.value - 1) * perPage
 
-    return filteredStories.value.slice(
+    return sortedStories.value.slice(
         start,
         start + perPage
     )
 })
 
+
 // Reset Page When Filters Change
 watch(
-    [searchQuery, selectedCategory, selectedAge],
+    [searchQuery, selectedCategory, selectedAge, selectedSort],
     () => {
         currentPage.value = 1
     }
@@ -190,6 +215,7 @@ function resetFilters() {
     searchQuery.value = ''
     selectedCategory.value = 'all'
     selectedAge.value = 'all'
+	selectedSort.value = 'default'
     currentPage.value = 1
 }
 </script>
@@ -263,10 +289,10 @@ function resetFilters() {
                 </h2>
 
                 <div
-                    class="grid grid-cols-1 gap-4
-                           md:grid-cols-3"
+                    class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4"
                 >
                     <!-- Search Input -->
+					
                     <div class="md:col-span-1">
                         <label
                             for="story-search"
@@ -359,14 +385,46 @@ function resetFilters() {
                             </option>
                         </select>
                     </div>
+					
+					<!-- Title Sorting -->
+					<div>
+						<label
+							for="sort-filter"
+							class="mb-2 block text-sm
+								   text-emerald-100/70"
+						>
+							শিরোনাম অনুযায়ী সাজান
+						</label>
+
+						<select
+							id="sort-filter"
+							v-model="selectedSort"
+							class="w-full rounded-xl
+								   border border-amber-400/20
+								   bg-[#0B1F16] px-4 py-3
+								   text-emerald-50 outline-none
+								   focus:border-amber-400"
+						>
+							<option value="default">
+								ডিফল্ট ক্রম
+							</option>
+							<option value="az">
+								শিরোনাম: A–Z
+							</option>
+							<option value="za">
+								শিরোনাম: Z–A
+							</option>
+						</select>
+					</div>
+
                 </div>
 
                 <!-- Reset Filters -->
-                <div class="mt-5 flex justify-end">
+                <div class="mt-5 flex justify-stretch sm:justify-end">
                     <button
                         type="button"
                         @click="resetFilters"
-                        class="rounded-lg border
+                        class="w-full sm:w-auto rounded-lg border rounded-lg border
                                border-amber-400/20
                                px-4 py-2 text-sm
                                text-amber-300
@@ -412,7 +470,49 @@ function resetFilters() {
                 </div>
 
                 <!-- Story Grid -->
-                <StoryGrid :stories="paginatedStories" />
+				
+                <StoryGrid
+					v-if="paginatedStories.length"
+					:stories="paginatedStories"
+				/>
+
+				<div
+					v-else
+					class="rounded-2xl border
+						   border-dashed border-amber-400/25
+						   bg-[#102B20] px-6 py-16
+						   text-center"
+				>
+					<p class="text-4xl">📚</p>
+
+					<h3
+						class="mt-4 text-xl font-bold
+							   text-amber-300"
+					>
+						কোনো গল্প পাওয়া যায়নি
+					</h3>
+
+					<p
+						class="mx-auto mt-2 max-w-md
+							   text-sm leading-7
+							   text-emerald-100/60"
+					>
+						অন্য কোনো নাম লিখে খুঁজুন অথবা
+						ফিল্টারগুলো পরিবর্তন করুন।
+					</p>
+
+					<button
+						type="button"
+						@click="resetFilters"
+						class="mt-6 rounded-lg
+							   border border-amber-400/30
+							   px-5 py-2.5 text-sm
+							   text-amber-300 transition
+							   hover:bg-amber-400/10"
+					>
+						সব ফিল্টার রিসেট করুন
+					</button>
+				</div>
 
                 <!-- Pagination -->
                 <div

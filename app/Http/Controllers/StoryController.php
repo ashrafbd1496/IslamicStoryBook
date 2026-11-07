@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Inertia\Inertia;
 use Inertia\Response;
+use App\Models\StoryPage;
 
 class StoryController extends Controller
 {
@@ -150,6 +151,17 @@ class StoryController extends Controller
         $storyId = (int) $story;
 
         abort_if(! isset($stories[$storyId]), 404);
+		
+		$pages = StoryPage::query()
+		->where('story_id', $storyId)
+		->orderBy('page_number')
+		->get([
+			'page_number',
+			'paragraph',
+			'image_url',
+			'audio_url',
+		]);
+	
 
         $storyIds = array_keys($stories);
 
@@ -169,8 +181,130 @@ class StoryController extends Controller
 
         return Inertia::render('Stories/Read', [
             'story' => $stories[$storyId],
+			 'pages' => $pages,
             'previousStoryId' => $previousStoryId,
             'nextStoryId' => $nextStoryId,
         ]);
     }
+
+    
+public function categoryIndex(): Response
+{
+    $stories = $this->stories();
+
+    $categoryData = [
+        [
+            'id' => 1,
+            'name' => 'কুরআনের গল্প',
+            'slug' => 'quran-stories',
+            'icon' => '📖',
+            'description' => 'পবিত্র কুরআনে বর্ণিত শিক্ষণীয় গল্প।',
+        ],
+        [
+            'id' => 2,
+            'name' => 'নবীদের গল্প',
+            'slug' => 'prophets-stories',
+            'icon' => '🌙',
+            'description' => 'আল্লাহর নবীদের জীবন ও শিক্ষা।',
+        ],
+        [
+            'id' => 3,
+            'name' => 'সাহাবীদের গল্প',
+            'slug' => 'sahaba-stories',
+            'icon' => '⭐',
+            'description' => 'সাহাবীদের জীবন ও আদর্শের গল্প।',
+        ],
+        [
+            'id' => 4,
+            'name' => 'নেককারদের গল্প',
+            'slug' => 'righteous-stories',
+            'icon' => '🕌',
+            'description' => 'নেককার ব্যক্তিদের জীবন থেকে শিক্ষা।',
+        ],
+        [
+            'id' => 5,
+            'name' => 'নৈতিক শিক্ষার গল্প',
+            'slug' => 'moral-stories',
+            'icon' => '🌿',
+            'description' => 'সততা, দয়া ও উত্তম চরিত্রের গল্প।',
+        ],
+    ];
+
+    $categories = collect($categoryData)->map(function ($category) use ($stories) {
+        $category['story_count'] = collect($stories)
+            ->where('category', $category['name'])
+            ->count();
+
+        return $category;
+    });
+
+    return Inertia::render('Categories/Index', [
+        'categories' => $categories,
+    ]);
 }
+
+
+
+
+public function categoryShow(string $slug): Response
+{
+    $categoryData = [
+        'quran-stories' => [
+            'name' => 'কুরআনের গল্প',
+            'slug' => 'quran-stories',
+            'icon' => '📖',
+            'description' => 'পবিত্র কুরআনে বর্ণিত শিক্ষণীয় গল্প।',
+        ],
+
+        'prophets-stories' => [
+            'name' => 'নবীদের গল্প',
+            'slug' => 'prophets-stories',
+            'icon' => '🌙',
+            'description' => 'আল্লাহর নবীদের জীবন ও শিক্ষা।',
+        ],
+
+        'sahaba-stories' => [
+            'name' => 'সাহাবীদের গল্প',
+            'slug' => 'sahaba-stories',
+            'icon' => '⭐',
+            'description' => 'সাহাবীদের জীবন ও আদর্শের গল্প।',
+        ],
+
+        'righteous-stories' => [
+            'name' => 'নেককারদের গল্প',
+            'slug' => 'righteous-stories',
+            'icon' => '🕌',
+            'description' => 'নেককার ব্যক্তিদের জীবন থেকে শিক্ষা।',
+        ],
+
+        'moral-stories' => [
+            'name' => 'নৈতিক শিক্ষার গল্প',
+            'slug' => 'moral-stories',
+            'icon' => '🌿',
+            'description' => 'সততা, দয়া ও উত্তম চরিত্রের গল্প।',
+        ],
+    ];
+
+    abort_if(! isset($categoryData[$slug]), 404);
+
+    $category = $categoryData[$slug];
+
+    $stories = collect($this->stories())
+        ->where('category', $category['name'])
+        ->values()
+        ->map(function ($story) {
+            unset($story['content']);
+
+            return $story;
+        });
+
+    return Inertia::render('Categories/Show', [
+        'category' => $category,
+        'stories' => $stories,
+    ]);
+}
+
+
+}
+
+

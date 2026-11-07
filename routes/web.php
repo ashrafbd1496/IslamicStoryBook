@@ -12,6 +12,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
 require __DIR__.'/settings.php';
 
 
+Route::get('/categories', [
+    StoryController::class,
+    'categoryIndex',
+])->name('categories.index');
+
 
 Route::get('/stories', function () {
     return Inertia::render('Stories/Index');
@@ -26,4 +31,11 @@ Route::get('/stories/{story}', [
     StoryController::class,
     'show',
 ])->name('stories.show');
+
+
+
+Route::get('/categories/{slug}', [
+    StoryController::class,
+    'categoryShow',
+])->name('categories.show');
 

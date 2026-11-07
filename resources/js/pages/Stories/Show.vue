@@ -274,10 +274,8 @@ defineProps<{
 
                         <!-- Back Button -->
                         <div
-                            class="mt-10
-                                   border-t
-                                   border-amber-400/10
-                                   pt-6"
+                            class="mt-8 flex flex-wrap
+           items-center gap-4 border-t border-amber-400/10 pt-6"
                         >
                             <Link
                                 href="/stories"
